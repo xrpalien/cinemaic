@@ -51,6 +51,7 @@
       </button>
       <div class="user-menu-dropdown" id="user-menu-dropdown" hidden>
         <button class="user-menu-item" onclick="app.openProfileModal()">My Taste Profile</button>
+        <button class="user-menu-item" onclick="app.openFeedbackModal()">Send Feedback</button>
         <div class="user-menu-divider"></div>
         <button class="user-menu-item" onclick="app.signOutUser()">Sign out</button>
       </div>
@@ -107,10 +108,10 @@
 </div>
 
 <script type="module">
-  import { render, openSearchModal, closeModal, openProfileModal, setMediaType, setFilter, setSort, setGenre, signIn, signOutUser } from './js/app.js';
+  import { render, openSearchModal, closeModal, openProfileModal, openFeedbackModal, setMediaType, setFilter, setSort, setGenre, signIn, signOutUser } from './js/app.js';
 
   // Expose to inline onclick handlers
-  window.app = { render, openSearchModal, closeModal, openProfileModal, setMediaType, setFilter, setSort, setGenre, signIn, signOutUser };
+  window.app = { render, openSearchModal, closeModal, openProfileModal, openFeedbackModal, setMediaType, setFilter, setSort, setGenre, signIn, signOutUser };
 
   // Close modal on backdrop click
   document.getElementById('modal').addEventListener('click', e => {

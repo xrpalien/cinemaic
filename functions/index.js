@@ -6,8 +6,9 @@ const Anthropic              = require('@anthropic-ai/sdk');
 
 setGlobalOptions({ maxInstances: 10 });
 
-const tmdbKey   = defineSecret('TMDB_KEY');
-const claudeKey = defineSecret('CLAUDE_KEY');
+const tmdbKey     = defineSecret('TMDB_KEY');
+const claudeKey   = defineSecret('CLAUDE_KEY');
+const githubToken = defineSecret('GITHUB_TOKEN');
 
 /**
  * TMDB proxy — keeps the API key server-side.
@@ -128,5 +129,77 @@ RULES:
     if (err instanceof HttpsError) throw err;
     logger.error('Unexpected error in askAI function', err);
     throw new HttpsError('internal', 'AI request failed.');
+  }
+});
+
+/**
+ * Feedback — creates a GitHub Issue on the cinemAIc repo.
+ * Requires the user to be authenticated.
+ * type: 'bug' | 'feature'
+ */
+exports.submitFeedback = onCall({ secrets: [githubToken] }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be signed in.');
+  }
+
+  const { type, title, body } = request.data;
+
+  if (!type || !['bug', 'feature'].includes(type)) {
+    throw new HttpsError('invalid-argument', 'Invalid feedback type.');
+  }
+  if (!title || typeof title !== 'string' || title.trim().length === 0) {
+    throw new HttpsError('invalid-argument', 'Title is required.');
+  }
+  if (title.trim().length > 150) {
+    throw new HttpsError('invalid-argument', 'Title too long (150 char max).');
+  }
+  if (body && body.length > 2000) {
+    throw new HttpsError('invalid-argument', 'Description too long (2000 char max).');
+  }
+
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    logger.error('GITHUB_TOKEN secret not available');
+    throw new HttpsError('internal', 'Feedback not configured.');
+  }
+
+  const label     = type === 'bug' ? 'bug' : 'enhancement';
+  const typeLabel = type === 'bug' ? '🐛 Bug Report' : '✨ Feature Request';
+  const userEmail = request.auth.token.email || request.auth.uid;
+
+  const issueBody = [
+    body ? body.trim() : '_No description provided._',
+    '',
+    '---',
+    `**Type:** ${typeLabel}`,
+    `**Submitted by:** ${userEmail}`,
+    `**Via:** cinemAIc in-app feedback`,
+  ].join('\n');
+
+  try {
+    const res = await fetch('https://api.github.com/repos/xrpalien/cinemaic/issues', {
+      method: 'POST',
+      headers: {
+        'Authorization':        `Bearer ${token}`,
+        'Accept':               'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type':         'application/json',
+      },
+      body: JSON.stringify({ title: title.trim(), body: issueBody, labels: [label] }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      logger.error('GitHub API error', { status: res.status, errText });
+      throw new HttpsError('internal', 'Failed to create issue.');
+    }
+
+    const issue = await res.json();
+    return { issueNumber: issue.number, url: issue.html_url };
+
+  } catch (err) {
+    if (err instanceof HttpsError) throw err;
+    logger.error('Unexpected error in submitFeedback', err);
+    throw new HttpsError('internal', 'Unexpected error.');
   }
 });

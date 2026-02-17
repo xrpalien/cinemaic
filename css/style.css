@@ -1226,6 +1226,110 @@ header {
   margin: 0.25rem 0;
 }
 
+/* ── Feedback Modal ───────────────────────────────────────────────────────────── */
+.feedback-type-row {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.feedback-type-btn {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.feedback-type-btn:hover { border-color: var(--dim); color: var(--text); }
+
+.feedback-type-btn.active {
+  background: color-mix(in srgb, var(--gold) 12%, var(--surface2));
+  border-color: var(--gold-dim);
+  color: var(--text);
+}
+
+.feedback-field {
+  margin-bottom: 1rem;
+}
+
+.feedback-label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.03em;
+}
+
+.feedback-required { color: var(--gold); }
+.feedback-optional { color: var(--muted); font-style: italic; }
+
+.feedback-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  padding: 0.65rem 0.75rem;
+  box-sizing: border-box;
+}
+
+.feedback-input:focus { outline: none; border-color: var(--gold-dim); }
+.feedback-input::placeholder { color: var(--muted); }
+
+.feedback-textarea {
+  width: 100%;
+  min-height: 90px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  padding: 0.65rem 0.75rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.feedback-textarea:focus { outline: none; border-color: var(--gold-dim); }
+.feedback-textarea::placeholder { color: var(--muted); }
+
+.feedback-success {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: color-mix(in srgb, var(--green) 10%, var(--surface2));
+  border: 1px solid color-mix(in srgb, var(--green) 30%, var(--border));
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.feedback-success a {
+  color: var(--gold);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.feedback-success a:hover { text-decoration: underline; }
+
+.feedback-error {
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  color: #e88;
+}
+
 .ai-results-error {
   padding: 0.75rem 0;
   font-size: 0.82rem;

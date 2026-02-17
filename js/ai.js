@@ -10,6 +10,12 @@ function callAskAI() {
   return _askAI;
 }
 
+let _submitFeedback = null;
+function callSubmitFeedback() {
+  if (!_submitFeedback) _submitFeedback = httpsCallable(getFunctions(getApp()), 'submitFeedback');
+  return _submitFeedback;
+}
+
 /**
  * Build a taste profile from the user's stored items.
  * Sent to the AI as context — no raw IDs or internal fields.
@@ -68,5 +74,10 @@ export function buildTasteProfile(items, tasteNotes = '') {
  */
 export async function askAI(tasteProfile, prompt, mediaType) {
   const result = await callAskAI()({ tasteProfile, prompt, mediaType });
+  return result.data;
+}
+
+export async function submitFeedback(type, title, body) {
+  const result = await callSubmitFeedback()({ type, title, body });
   return result.data;
 }

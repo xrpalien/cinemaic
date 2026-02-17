@@ -1,7 +1,7 @@
 import { searchMovies, searchTV, getMovieDetails, getTVDetails, getRecommendations } from './tmdb.js';
 import { getAll, addItem, removeItem, markWatched, unmarkWatched, updateRating, patchItem, setUser, getTasteNotes, saveTasteNotes } from './store.js';
 import { auth, signIn, signOutUser, onAuthStateChanged } from './firebase.js';
-import { buildTasteProfile, askAI } from './ai.js';
+import { buildTasteProfile, askAI, submitFeedback } from './ai.js';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 const state = {
@@ -849,6 +849,85 @@ export function openProfileModal() {
     await saveTasteNotes(notes);
     btn.textContent = 'Saved ✓';
     setTimeout(() => closeModal(), 800);
+  });
+
+  modal.hidden = false;
+}
+
+// ─── Feedback Modal ────────────────────────────────────────────────────────────
+export function openFeedbackModal() {
+  const modal = document.getElementById('modal');
+  const body  = document.getElementById('modal-body');
+  if (!modal || !body) return;
+
+  body.innerHTML = `
+    <div class="feedback-modal">
+      <h2 class="profile-modal-title">Send Feedback</h2>
+      <p class="profile-modal-subtitle">Bug reports and feature requests go straight to the cinemAIc GitHub repo as issues.</p>
+
+      <div class="feedback-type-row">
+        <button class="feedback-type-btn active" data-type="bug">🐛 Bug Report</button>
+        <button class="feedback-type-btn" data-type="feature">✨ Feature Request</button>
+      </div>
+
+      <div class="feedback-field">
+        <label class="feedback-label">Title <span class="feedback-required">*</span></label>
+        <input type="text" id="feedback-title" class="feedback-input" placeholder="Short description of the issue or idea" maxlength="150" />
+      </div>
+
+      <div class="feedback-field">
+        <label class="feedback-label">Details <span class="feedback-optional">(optional)</span></label>
+        <textarea id="feedback-body" class="feedback-textarea" placeholder="Steps to reproduce, expected behavior, or more context…" maxlength="2000"></textarea>
+      </div>
+
+      <div id="feedback-result"></div>
+
+      <div class="profile-notes-actions">
+        <button class="btn-ghost btn-large" id="feedback-cancel-btn" onclick="app.closeModal()">Cancel</button>
+        <button class="btn-primary btn-large" id="feedback-submit-btn">Submit</button>
+      </div>
+    </div>
+  `;
+
+  let selectedType = 'bug';
+  body.querySelectorAll('.feedback-type-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      body.querySelectorAll('.feedback-type-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedType = btn.dataset.type;
+    });
+  });
+
+  document.getElementById('feedback-submit-btn').addEventListener('click', async () => {
+    const submitBtn  = document.getElementById('feedback-submit-btn');
+    const resultEl   = document.getElementById('feedback-result');
+    const title      = document.getElementById('feedback-title').value.trim();
+    const fbBody     = document.getElementById('feedback-body').value.trim();
+
+    if (!title) {
+      resultEl.innerHTML = `<p class="feedback-error">Please add a title.</p>`;
+      document.getElementById('feedback-title').focus();
+      return;
+    }
+
+    submitBtn.disabled    = true;
+    submitBtn.textContent = 'Submitting…';
+    resultEl.innerHTML    = '';
+
+    try {
+      const { issueNumber, url } = await submitFeedback(selectedType, title, fbBody);
+      resultEl.innerHTML = `
+        <div class="feedback-success">
+          <span>Issue #${issueNumber} created ✓</span>
+          <a href="${url}" target="_blank" rel="noopener noreferrer">View on GitHub →</a>
+        </div>`;
+      submitBtn.hidden = true;
+      document.getElementById('feedback-cancel-btn').textContent = 'Close';
+    } catch {
+      resultEl.innerHTML    = `<p class="feedback-error">Couldn't submit. Try again.</p>`;
+      submitBtn.disabled    = false;
+      submitBtn.textContent = 'Submit';
+    }
   });
 
   modal.hidden = false;
